@@ -5,6 +5,8 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 
 import 'package:adder/adder.dart';
+import 'package:ffi/ffi.dart';
+import 'package:path_provider/path_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -70,13 +72,16 @@ class TakePictureScreenState extends State<TakePictureScreen> {
         onPressed: () async {
           try {
             await _initializeControllerFuture;
-            int a = widget.adder.add(1, 2);
+            //int a = widget.adder.add(1, 2);
             final image = await _controller.takePicture();
+            final directory = await getApplicationDocumentsDirectory();
+            final outputPath = directory.path + "processimage.jpg";
+            widget.adder.processImage(image?.path, outputPath);
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => DisplayPictureScreen(
-                  imagePath: image?.path,
+                  imagePath: outputPath, //image?.path,
                 ),
               ),
             );

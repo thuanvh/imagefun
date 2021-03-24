@@ -12,3 +12,4 @@ crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
 adder = { path = "../adder" }
+opencv = {version = "0.49", features = ["contrib"]}

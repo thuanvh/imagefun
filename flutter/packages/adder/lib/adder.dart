@@ -19,10 +19,13 @@
 
 import 'dart:ffi';
 import 'dart:io' show Platform;
+import 'package:ffi/ffi.dart';
 
 typedef add_func = Int64 Function(Int64 a, Int64 b);
+typedef process_image_func = Void Function(Pointer<Utf8>, Pointer<Utf8>);
 
-typedef Add = int Function(int a, int b);
+typedef AddFunc = int Function(int a, int b);
+typedef ProcessImageFunc = void Function(Pointer<Utf8>, Pointer<Utf8>);
 
 DynamicLibrary load({String basePath = ''}) {
   if (Platform.isAndroid || Platform.isLinux) {
@@ -45,7 +48,8 @@ class NotSupportedPlatform implements Exception {
 
 class Adder {
   static DynamicLibrary _lib;
-
+  static AddFunc _sum;
+  static ProcessImageFunc _processImageFunc;
   Adder() {
     if (_lib != null) return;
     // for debugging and tests
@@ -54,13 +58,22 @@ class Adder {
     } else {
       _lib = load();
     }
-  }
 
-  int add(int a, int b) {
     // get a function pointer to the symbol called `add`
     final addPointer = _lib.lookup<NativeFunction<add_func>>('add');
     // and use it as a function
-    final sum = addPointer.asFunction<Add>();
-    return sum(a, b);
+    _sum = addPointer.asFunction<AddFunc>();
+    _processImageFunc = _lib
+        .lookup<NativeFunction<process_image_func>>('process_image')
+        .asFunction<ProcessImageFunc>();
+  }
+
+  int add(int a, int b) {
+    return _sum(a, b);
+  }
+
+  void processImage(String inputPath, String outputPath) {
+    _processImageFunc(StringUtf8Pointer(inputPath).toNativeUtf8(),
+        StringUtf8Pointer(outputPath).toNativeUtf8());
   }
 }
